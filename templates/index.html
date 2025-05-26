@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Raccoon Sightings</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map { height: 500px; }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    img { max-width: 150px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Report a Raccoon!</h1>
+  <p>Click on the map where you saw the raccoon, upload a photo, and submit.</p>
+
+  <div id="map"></div>
+
+  <form action="/submit" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="lat" id="lat" required>
+    <input type="hidden" name="lng" id="lng" required>
+    <p><input type="file" name="photo" required></p>
+    <p><button type="submit">Submit Sighting</button></p>
+  </form>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([34.4139, -119.8489], 15); // Isla Vista coords
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker;
+    map.on('click', function(e) {
+      if (marker) map.removeLayer(marker);
+      marker = L.marker(e.latlng).addTo(map);
+      document.getElementById('lat').value = e.latlng.lat;
+      document.getElementById('lng').value = e.latlng.lng;
+    });
+
+    {% for sighting in sightings %}
+      L.marker([{{ sighting.lat }}, {{ sighting.lng }}]) // Errors gone when filled with coords
+        .addTo(map)
+        .bindPopup('<img src="/uploads/{{ sighting.filename }}" alt="Raccoon"><br><b>Raccoon Spotted!</b>');
+    {% endfor %}
+  </script>
+</body>
+</html>
